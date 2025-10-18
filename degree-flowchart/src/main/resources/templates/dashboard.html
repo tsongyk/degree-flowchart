@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <title>Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      .tabs {
+        display: flex;
+        border-bottom: 2px solid #333;
+        margin-bottom: 20px;
+      }
+
+      .tab {
+        padding: 10px 20px;
+        cursor: pointer;
+        border: none;
+        background: #f0f0f0;
+        margin-right: 5px;
+      }
+
+      .tab.active {
+        background: #333;
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .flowchart {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+        margin-top: 30px;
+      }
+
+      .course-row {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        position: relative;
+      }
+
+      .course-card {
+        border: 2px solid #333;
+        padding: 15px;
+        width: 250px;
+        text-align: center;
+        background: white;
+        position: relative;
+      }
+
+      .course-options {
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .or-text {
+        font-weight: bold;
+        font-size: 18px;
+        padding: 0 10px;
+      }
+
+      .arrow-down {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-top: 20px solid #333;
+        margin: 0 auto;
+      }
+
+      .arrow-container {
+        display: flex;
+        justify-content: center;
+        position: relative;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <h1>Dashboard</h1>
+    <img th:src="@{/images/logo.png}" style="max-width: 150px; max-height: 60px;"/>
+
+    <table>
+        <tr>
+            <td>Student ID:</td>
+            <td th:text="${student.studentId}"></td>
+        </tr>
+        
+        <tr>
+            <td>Full Name:</td>
+            <td th:text="${student.fullName}"></td>
+        </tr>
+        
+        <tr>
+            <td>First Name:</td>
+            <td th:text="${student.firstName}"></td>
+        </tr>
+        
+        <tr>
+            <td>Last Name:</td>
+            <td th:text="${student.lastName}"></td>
+        </tr>
+        
+        <tr>
+            <td>Email:</td>
+            <td th:text="${student.email}"></td>
+        </tr>
+        
+        <tr>
+            <td>Major:</td>
+            <td th:text="${student.major}"></td>
+        </tr>
+        
+        <tr>
+            <td>Expected Graduation:</td>
+            <td th:text="${student.expectedGraduation}"></td>
+        </tr>
+    </table>
+
+    <h2>Course Flowchart</h2>
+
+    <div style="margin-bottom: 20px;">
+      <label for="yearSelect"><strong>Select Year:</strong></label>
+      <select id="yearSelect" onchange="changeYear()" style="padding: 8px; font-size: 16px;">
+        <option value="year1" selected>Year 1</option>
+        <option value="year2">Year 2</option>
+        <option value="year3">Year 3</option>
+        <option value="year4">Year 4</option>
+      </select>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab(event, 'fall')">Fall Semester</button>
+      <button class="tab" onclick="switchTab(event, 'spring')">Spring Semester</button>
+    </div>
+
+    <div id="fall" class="tab-content active">
+      <h3>Year 1 - Fall Semester</h3>
+      
+      <div class="flowchart">
+        <div class="course-row">
+          <div class="course-options" th:if="${fallCourses != null and #lists.size(fallCourses) > 0}">
+            <div class="course-card" th:if="${#lists.size(fallCourses) > 0}" th:with="course=${fallCourses[0]}">
+              <strong th:text="${course.id}">Course ID</strong>
+              <p th:text="${course.name}">Course Name</p>
+            </div>
+            <div class="or-text" th:if="${#lists.size(fallCourses) >= 2}">OR</div>
+            <div class="course-card" th:if="${#lists.size(fallCourses) > 1}" th:with="course=${fallCourses[1]}">
+              <strong th:text="${course.id}">Course ID</strong>
+              <p th:text="${course.name}">Course Name</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow-container">
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="course-row">
+          <div class="course-card" th:if="${fallCourses != null and #lists.size(fallCourses) > 2}" th:with="course=${fallCourses[2]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+          <div class="course-card" th:if="${fallCourses != null and #lists.size(fallCourses) > 3}" th:with="course=${fallCourses[3]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+        </div>
+
+        <div class="arrow-container">
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="course-row">
+          <div class="course-card" th:if="${fallCourses != null and #lists.size(fallCourses) > 4}" th:with="course=${fallCourses[4]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="spring" class="tab-content">
+      <h3>Year 1 - Spring Semester</h3>
+      
+      <div class="flowchart">
+        <div class="course-row">
+          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 0}" th:with="course=${springCourses[0]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+        </div>
+
+        <div class="arrow-container">
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="course-row">
+          <div class="course-options" th:if="${springCourses != null and #lists.size(springCourses) > 1}">
+            <div class="course-card" th:if="${#lists.size(springCourses) > 1}" th:with="course=${springCourses[1]}">
+              <strong th:text="${course.id}">Course ID</strong>
+              <p th:text="${course.name}">Course Name</p>
+            </div>
+            <div class="or-text" th:if="${#lists.size(springCourses) >= 3}">OR</div>
+            <div class="course-card" th:if="${#lists.size(springCourses) > 2}" th:with="course=${springCourses[2]}">
+              <strong th:text="${course.id}">Course ID</strong>
+              <p th:text="${course.name}">Course Name</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="arrow-container">
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="course-row">
+          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 3}" th:with="course=${springCourses[3]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 4}" th:with="course=${springCourses[4]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+        </div>
+
+        <div class="arrow-container">
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="course-row">
+          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 5}" th:with="course=${springCourses[5]}">
+            <strong th:text="${course.id}">Course ID</strong>
+            <p th:text="${course.name}">Course Name</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function switchTab(event, tabId) {
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+      }
+
+      function changeYear() {
+        const yearSelect = document.getElementById('yearSelect');
+        const selectedYear = yearSelect.value;
+        
+        // Update semester titles
+        const fallTitle = document.querySelector('#fall h3');
+        const springTitle = document.querySelector('#spring h3');
+        
+        const yearNumber = selectedYear.replace('year', '');
+        fallTitle.textContent = 'Year ' + yearNumber + ' - Fall Semester';
+        springTitle.textContent = 'Year ' + yearNumber + ' - Spring Semester';
+        
+        // Load different courses based on the year
+        // For now, only Year 1 has courses defined
+        // if (selectedYear == 'year1') {
+        //  
+        // }
+      }
+    </script>
+  </body>
+</html>
