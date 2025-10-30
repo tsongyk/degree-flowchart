@@ -1,55 +1,96 @@
 package p466.degree_flowchart.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.ResponseBody;
+import p466.degree_flowchart.data.*;
+import p466.degree_flowchart.model.*;
 
-import p466.degree_flowchart.data.StudentRepository;
-import p466.degree_flowchart.model.Student;
-import p466.degree_flowchart.model.Course;
-import p466.degree_flowchart.model.Course.Category;
-import jakarta.servlet.http.HttpSession;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Controller
 public class DashboardController {
 
+    @Autowired
+    private CourseRepository courseRepo;
+
+    @Autowired
+    private DegreeProgressRepository progressRepo;
+
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @GetMapping("/dashboard")
-    public String showDashboard(HttpSession session, Model model) {
-        Student student = (Student) session.getAttribute("loggedInStudent");
+    public String showDashboard(Model model, HttpSession session) {
+        Student student = (Student) session.getAttribute("student");
         if (student == null) {
             return "redirect:/login";
         }
+
+        String studentId = student.getStudentId();
+        DegreeProgress progress = progressRepo.findByStudentId(studentId);
+        if (progress == null) {
+            progress = new DegreeProgress();
+            progress.setStudentId(studentId);
+            progressRepo.save(progress);
+        }
+
         model.addAttribute("student", student);
-        
-        // Add Fall semester courses
-        List<Course> fallCourses = new ArrayList<>();
-        fallCourses.add(new Course("CSCI–C 200", "Introduction to Computers and Programming", Category.CORE, 3, ""));
-        fallCourses.add(new Course("CSCI–C 211", "Introduction to Computer Science", Category.CORE, 4, ""));
-        fallCourses.add(new Course("MATH–M 211", "Calculus I", Category.MATH, 4, ""));
-        fallCourses.add(new Course("ENG–W 170", "Projects in Reading & Writing (Introduction to Argumentative Writing)", Category.HUMANITIES, 3, ""));
-        fallCourses.add(new Course("ELECTIVE", "Elective Course", Category.ELECTIVE, 3, ""));
-        
-        // Add Spring semester courses
-        List<Course> springCourses = new ArrayList<>();
-        springCourses.add(new Course("CSCI–C 212", "Introduction to Software Systems", Category.CORE, 4, "CSCI–C 211"));
-        springCourses.add(new Course("MATH–M 212", "Calculus II", Category.MATH, 4, "MATH–M 211"));
-        springCourses.add(new Course("MATH–M 303", "Linear Algebra for Undergraduates", Category.MATH, 3, ""));
-        springCourses.add(new Course("IUB GENED", "Breadth of Inquiry: Arts & Humanities", Category.HUMANITIES, 3, ""));
-        springCourses.add(new Course("IUB GENED", "Breadth of Inquiry: Social & Historical Studies", Category.HUMANITIES, 3, ""));
-        springCourses.add(new Course("ELECTIVE", "Elective Course", Category.ELECTIVE, 3, ""));
-        
-        model.addAttribute("fallCourses", fallCourses);
-        model.addAttribute("springCourses", springCourses);
-        
         return "dashboard";
+    }
+
+    /** ✅ Returns JSON summary for dashboard frontend */
+    @GetMapping("/api/dashboard")
+    @ResponseBody
+    public Map<String, Object> getDashboardData(HttpSession session) {
+        Student student = (Student) session.getAttribute("student");
+        if (student == null) {
+            return Map.of("error", "Not logged in");
+        }
+
+        String studentId = student.getStudentId();
+        DegreeProgress progress = progressRepo.findByStudentId(studentId);
+        List<Course> allCourses = courseRepo.findAll();
+
+        int totalCredits = allCourses.stream().mapToInt(Course::getCredits).sum();
+        int completedCredits = 0;
+
+        // ✅ Parse completedCoursesJson if available
+        if (progress != null && progress.getCompletedCoursesJson() != null) {
+            try {
+                List<String> completedCourseCodes = mapper.readValue(
+                        progress.getCompletedCoursesJson(),
+                        new TypeReference<List<String>>() {}
+                );
+
+                for (String code : completedCourseCodes) {
+                    for (Course c : allCourses) {
+                        if (c.getCode().equals(code)) {
+                            completedCredits += c.getCredits();
+                            break;
+                        }
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        int percentCompleted = totalCredits > 0
+                ? (int) Math.round((completedCredits * 100.0) / totalCredits)
+                : 0;
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("student", student);
+        data.put("totalCredits", totalCredits);
+        data.put("completedCredits", completedCredits);
+        data.put("percentCompleted", percentCompleted);
+
+        return data;
     }
 }

@@ -1,286 +1,133 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <title>Dashboard</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-      }
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Degree Progress Tracker</title>
+    <link rel="stylesheet" href="/css/dashboard.css" th:href="@{/css/dashboard.css}">
+</head>
 
-      .tabs {
-        display: flex;
-        border-bottom: 2px solid #333;
-        margin-bottom: 20px;
-      }
-
-      .tab {
-        padding: 10px 20px;
-        cursor: pointer;
-        border: none;
-        background: #f0f0f0;
-        margin-right: 5px;
-      }
-
-      .tab.active {
-        background: #333;
-        color: white;
-      }
-
-      .tab-content {
-        display: none;
-      }
-
-      .tab-content.active {
-        display: block;
-      }
-
-      .flowchart {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 40px;
-        margin-top: 30px;
-      }
-
-      .course-row {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        position: relative;
-      }
-
-      .course-card {
-        border: 2px solid #333;
-        padding: 15px;
-        width: 250px;
-        text-align: center;
-        background: white;
-        position: relative;
-      }
-
-      .course-options {
-        display: flex;
-        flex-direction: row;
-        gap: 20px;
-        align-items: center;
-      }
-
-      .or-text {
-        font-weight: bold;
-        font-size: 18px;
-        padding: 0 10px;
-      }
-
-      .arrow-down {
-        width: 0;
-        height: 0;
-        border-left: 15px solid transparent;
-        border-right: 15px solid transparent;
-        border-top: 20px solid #333;
-        margin: 0 auto;
-      }
-
-      .arrow-container {
-        display: flex;
-        justify-content: center;
-        position: relative;
-      }
-    </style>
-  </head>
-  
-  <body>
-    <h1>Dashboard</h1>
-    <img th:src="@{/images/logo.png}" style="max-width: 150px; max-height: 60px;"/>
-
-    <table>
-        <tr>
-            <td>Student ID:</td>
-            <td th:text="${student.studentId}"></td>
-        </tr>
-        
-        <tr>
-            <td>Full Name:</td>
-            <td th:text="${student.fullName}"></td>
-        </tr>
-        
-        <tr>
-            <td>First Name:</td>
-            <td th:text="${student.firstName}"></td>
-        </tr>
-        
-        <tr>
-            <td>Last Name:</td>
-            <td th:text="${student.lastName}"></td>
-        </tr>
-        
-        <tr>
-            <td>Email:</td>
-            <td th:text="${student.email}"></td>
-        </tr>
-        
-        <tr>
-            <td>Major:</td>
-            <td th:text="${student.major}"></td>
-        </tr>
-        
-        <tr>
-            <td>Expected Graduation:</td>
-            <td th:text="${student.expectedGraduation}"></td>
-        </tr>
-    </table>
-
-    <h2>Course Flowchart</h2>
-
-    <div style="margin-bottom: 20px;">
-      <label for="yearSelect"><strong>Select Year:</strong></label>
-      <select id="yearSelect" onchange="changeYear()" style="padding: 8px; font-size: 16px;">
-        <option value="year1" selected>Year 1</option>
-        <option value="year2">Year 2</option>
-        <option value="year3">Year 3</option>
-        <option value="year4">Year 4</option>
-      </select>
-    </div>
-
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab(event, 'fall')">Fall Semester</button>
-      <button class="tab" onclick="switchTab(event, 'spring')">Spring Semester</button>
-    </div>
-
-    <div id="fall" class="tab-content active">
-      <h3>Year 1 - Fall Semester</h3>
-      
-      <div class="flowchart">
-        <div class="course-row">
-          <div class="course-options" th:if="${fallCourses != null and #lists.size(fallCourses) > 0}">
-            <div class="course-card" th:if="${#lists.size(fallCourses) > 0}" th:with="course=${fallCourses[0]}">
-              <strong th:text="${course.id}">Course ID</strong>
-              <p th:text="${course.name}">Course Name</p>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="student-info">
+            <h1 id="studentName">Loading...</h1>
+            <div class="info-row">
+                <span><strong>Major:</strong> <span id="studentMajor"></span></span>
+                <span><strong>Expected Graduation:</strong> <span id="gradDate"></span></span>
+                <span><strong>Current GPA:</strong> <span id="gpa"></span></span>
             </div>
-            <div class="or-text" th:if="${#lists.size(fallCourses) >= 2}">OR</div>
-            <div class="course-card" th:if="${#lists.size(fallCourses) > 1}" th:with="course=${fallCourses[1]}">
-              <strong th:text="${course.id}">Course ID</strong>
-              <p th:text="${course.name}">Course Name</p>
+        </div>
+        <div class="degree-progress">
+            <label>Overall Degree Progress</label>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgress">
+                    <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <span class="progress-text" id="overallProgressText">0 / 120 credits</span>
             </div>
-          </div>
         </div>
-
-        <div class="arrow-container">
-          <div class="arrow-down"></div>
-        </div>
-
-        <div class="course-row">
-          <div class="course-card" th:if="${fallCourses != null and #lists.size(fallCourses) > 2}" th:with="course=${fallCourses[2]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
-          <div class="course-card" th:if="${fallCourses != null and #lists.size(fallCourses) > 3}" th:with="course=${fallCourses[3]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
-        </div>
-
-        <div class="arrow-container">
-          <div class="arrow-down"></div>
-        </div>
-
-        <div class="course-row">
-          <div class="course-card" th:if="${fallCourses != null and #lists.size(fallCourses) > 4}" th:with="course=${fallCourses[4]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
-        </div>
+        <div class="header-actions">
+        <button onclick="logout()">Logout</button>
       </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Requirements Sidebar -->
+        <aside class="requirements-panel" id="requirementsPanel">
+            <div class="requirements-header">
+                <h2>Degree Requirements</h2>
+                <!-- <button class="collapse-btn" id="collapseBtn" onclick="toggleRequirementsPanel()">
+                    <span class="collapse-icon">◀</span>
+                </button> -->
+            </div>
+            
+            <div class="requirements-content" id="requirementsContent">
+                <div class="requirement-block">
+                    <h3>CS Core Credits</h3>
+                    <div class="progress-bar-container small">
+                        <div class="progress-bar">
+                            <div class="progress-fill cscore" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="requirement-text"><span id="csCoreComplete">0</span> / 16 credits</p>
+                </div>
+
+                <div class="requirement-block">
+                    <h3>CS Elective Credits</h3>
+                    <div class="progress-bar-container small">
+                        <div class="progress-bar">
+                            <div class="progress-fill cse" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="requirement-text"><span id="csElectiveComplete">0</span> / 45 credits</p>
+                </div>
+
+                <div class="requirement-block">
+                    <h3>Math Credits</h3>
+                    <div class="progress-bar-container small">
+                        <div class="progress-bar">
+                            <div class="progress-fill math" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="requirement-text"><span id="mathComplete">0</span> / 12 credits</p>
+                </div>
+
+                <div class="requirement-block">
+                    <h3>General Education</h3>
+                    <div class="progress-bar-container small">
+                        <div class="progress-bar">
+                            <div class="progress-fill gened" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="requirement-text"><span id="genEdComplete">0</span> / 30 credits</p>
+                </div>
+
+                <div class="requirement-block">
+                    <h3>Free Electives</h3>
+                    <div class="progress-bar-container small">
+                        <div class="progress-bar">
+                            <div class="progress-fill elective" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <p class="requirement-text"><span id="electiveComplete">0</span> / 17 credits</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Flowchart -->
+        <div class="flowchart-container">
+            <svg id="arrowCanvas" class="arrow-canvas"></svg>
+            <div id="flowchart" class="flowchart">
+                <!-- Years will be dynamically generated -->
+            </div>
+        </div>
     </div>
 
-    <div id="spring" class="tab-content">
-      <h3>Year 1 - Spring Semester</h3>
-      
-      <div class="flowchart">
-        <div class="course-row">
-          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 0}" th:with="course=${springCourses[0]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
+    <!-- Course Selection Sidebar -->
+    <div id="courseSidebar" class="course-sidebar">
+        <div class="sidebar-header">
+            <h2>Add Course</h2>
+            <button class="close-btn" onclick="closeSidebar()">&times;</button>
         </div>
-
-        <div class="arrow-container">
-          <div class="arrow-down"></div>
-        </div>
-
-        <div class="course-row">
-          <div class="course-options" th:if="${springCourses != null and #lists.size(springCourses) > 1}">
-            <div class="course-card" th:if="${#lists.size(springCourses) > 1}" th:with="course=${springCourses[1]}">
-              <strong th:text="${course.id}">Course ID</strong>
-              <p th:text="${course.name}">Course Name</p>
+        <div class="sidebar-content">
+            <div class="semester-info">
+                <p><strong>Semester:</strong> <span id="selectedSemester"></span></p>
+                <p><strong>Current Credits:</strong> <span id="currentCredits">0</span> / 19</p>
             </div>
-            <div class="or-text" th:if="${#lists.size(springCourses) >= 3}">OR</div>
-            <div class="course-card" th:if="${#lists.size(springCourses) > 2}" th:with="course=${springCourses[2]}">
-              <strong th:text="${course.id}">Course ID</strong>
-              <p th:text="${course.name}">Course Name</p>
+            <div class="course-search">
+                <input type="text" id="courseSearch" placeholder="Search courses...">
             </div>
-          </div>
+            <div id="courseList" class="course-list">
+                <!-- Courses will be populated here -->
+            </div>
         </div>
-
-        <div class="arrow-container">
-          <div class="arrow-down"></div>
-        </div>
-
-        <div class="course-row">
-          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 3}" th:with="course=${springCourses[3]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
-          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 4}" th:with="course=${springCourses[4]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
-        </div>
-
-        <div class="arrow-container">
-          <div class="arrow-down"></div>
-        </div>
-
-        <div class="course-row">
-          <div class="course-card" th:if="${springCourses != null and #lists.size(springCourses) > 5}" th:with="course=${springCourses[5]}">
-            <strong th:text="${course.id}">Course ID</strong>
-            <p th:text="${course.name}">Course Name</p>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <script>
-      function switchTab(event, tabId) {
-        const tabContents = document.querySelectorAll('.tab-content');
-        tabContents.forEach(content => content.classList.remove('active'));
+    <!-- Overlay -->
+    <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
 
-        const tabs = document.querySelectorAll('.tab');
-        tabs.forEach(tab => tab.classList.remove('active'));
-
-        document.getElementById(tabId).classList.add('active');
-        event.currentTarget.classList.add('active');
-      }
-
-      function changeYear() {
-        const yearSelect = document.getElementById('yearSelect');
-        const selectedYear = yearSelect.value;
-        
-        // Update semester titles
-        const fallTitle = document.querySelector('#fall h3');
-        const springTitle = document.querySelector('#spring h3');
-        
-        const yearNumber = selectedYear.replace('year', '');
-        fallTitle.textContent = 'Year ' + yearNumber + ' - Fall Semester';
-        springTitle.textContent = 'Year ' + yearNumber + ' - Spring Semester';
-        
-        // Load different courses based on the year
-        // For now, only Year 1 has courses defined
-        // if (selectedYear == 'year1') {
-        //  
-        // }
-      }
-    </script>
-  </body>
+    <script src="/js/flowchart.js" th:src="@{/js/flowchart.js}"></script>
+</body>
 </html>

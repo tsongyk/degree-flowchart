@@ -9,11 +9,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import p466.degree_flowchart.data.StudentRepository;
-import p466.degree_flowchart.model.Student;
 import jakarta.servlet.http.HttpSession;
 
-import java.util.Optional;
+import p466.degree_flowchart.data.StudentRepository;
+import p466.degree_flowchart.model.Student;
 
 @Controller
 @RequestMapping("/login")
@@ -25,35 +24,33 @@ public class LoginController {
 
     @Autowired
     public LoginController(StudentRepository studentRepo) {
-      this.studentRepo = studentRepo;
+        this.studentRepo = studentRepo;
     }
 
     @GetMapping
     public String showLoginForm(Model model) {
-      return "login";
+        return "login";
     }
 
     @PostMapping
     public String processLogin(
-          @RequestParam("studentId") String studentId,
-          @RequestParam("password") String password,
-          HttpSession session,
-          RedirectAttributes redirectAttributes) {
+            @RequestParam("studentId") String studentId,
+            @RequestParam("password") String password,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
 
-    log.info("Login attempt for student ID: {}", studentId);
+        log.info("Login attempt for student ID: {}", studentId);
 
-    Optional<Student> student = studentRepo.findByStudentIdAndPassword(studentId, password);
+        Student student = studentRepo.findByStudentIdAndPassword(studentId, password);
 
-    if (student.isPresent()) {
-        // Login successful
-        session.setAttribute("loggedInStudent", student.get());
-        log.info("Login successful for: {}", student.get().getFullName());
-        return "redirect:/dashboard";
-    } else {
-        // Login failed
-        log.warn("Login failed for student ID: {}", studentId);
-        redirectAttributes.addFlashAttribute("error", "Invalid student ID or password"); // Used to pass error messages between redirects
-        return "redirect:/login";
+        if (student != null) {
+            session.setAttribute("student", student);
+            log.info("Login successful for: {}", student.getFullName());
+            return "redirect:/dashboard";
+        } else {
+            log.warn("Login failed for student ID: {}", studentId);
+            redirectAttributes.addFlashAttribute("error", "Invalid student ID or password");
+            return "redirect:/login";
+        }
     }
-  }
 }
